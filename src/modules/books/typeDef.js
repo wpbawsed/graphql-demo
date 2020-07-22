@@ -6,7 +6,8 @@ const typeDef = gql`
     author: String
   }
   extend type Query {
-    books: [Book]
+    book(id: ID!): Book @isAuthenticated
+    books: [Book] @isAuthenticated
   }
 `;
 

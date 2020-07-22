@@ -1,11 +1,25 @@
-const { books } = require("./data");
+const mongoose = require('mongoose')
 
-class Book {
-    static all() {
-        return books;
+const bookSchema = new mongoose.Schema({
+    title: {
+        type: String,
+        required: true
+    },
+    createdBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
+    created: {
+        type: Date,
+        default: Date.now
+    },
+    changed: {
+        type: Date,
+        default: Date.now
     }
-}
+})
 
-module.exports = {
-    Book,
-};
+const Book = mongoose.model('Book', bookSchema)
+
+module.exports = Book
