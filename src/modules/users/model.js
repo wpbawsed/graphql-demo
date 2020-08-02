@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    hashedPassword: {
+    password: {
         type: String,
         required: true
     },
@@ -30,6 +30,24 @@ const userSchema = new mongoose.Schema({
     }
 })
 
+userSchema.methods = {
+    view (full) {
+        let view = {}
+        let fields = ['id', 'name', 'picture']
+
+        if (full) {
+            fields = [...fields, 'email', 'createdAt']
+        }
+
+        fields.forEach((field) => { view[field] = this[field] })
+
+        return view
+    },
+}
+
 const User = mongoose.model('User', userSchema)
 
-module.exports = User
+module.exports = {
+    schema: User.schema,
+    User: User
+}

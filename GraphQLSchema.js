@@ -1,6 +1,6 @@
-const { buildSchema } = require('graphql');
+const { gql } = require('apollo-server-express')
 
-exports.schema = buildSchema(`
+exports.typeDefs = gql(`
   type User {
     id: ID!
     name: String!
@@ -15,6 +15,7 @@ exports.schema = buildSchema(`
   }
 
   type Query {
+    hello: String
     users: [User!]!
     posts: [Post!]!
     user(id: ID!): User
@@ -118,7 +119,7 @@ class GraphQLPost {
     }
 }
 
-exports.rootValue = {
-    ...queries,
-    ...mutations,
+exports.resolvers = {
+    Query: queries,
+    Mutation: mutations,
 };

@@ -1,5 +1,7 @@
-const books = [
+const users = [
     {
+        id: 1,
+        name: "AAA",
         title: 'Harry Potter and the Chamber of Secrets',
         author: 'J.K. Rowling',
     },
@@ -10,5 +12,5 @@ const books = [
 ];
 
 module.exports = {
-    books,
+    users,
 };

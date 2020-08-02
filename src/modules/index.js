@@ -1,9 +1,11 @@
 const { makeExecutableSchemaFromModules } = require('../utils/modules')
-const auth = require('./auth')
-const books = require('./books')
+
+// const { auth } = require('./auth')
+const { books } = require('./books')
+
 module.exports = makeExecutableSchemaFromModules({
     modules: [
-        auth,
+        // auth,
         books
     ]
 })

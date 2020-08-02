@@ -4,16 +4,20 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "apollo-server-express": "^2.16.1",
     "bcrypt": "^5.0.0",
+    "body-parser": "^1.19.0",
+    "deepmerge": "^4.2.2",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "express-graphql": "^0.9.0",
     "graphql": "^14.4.2",
     "graphql-sequelize": "^9.4.0",
+    "graphql-tools": "^6.0.15",
     "jsonwebtoken": "^8.5.1",
     "mocha": "^8.0.1",
     "mongoose": "^5.9.25",
-    "throng": "^4.0.0"
+    "throng": "^4.0.0",
+    "url": "^0.11.0"
   },
   "devDependencies": {
     "nodemon": "^2.0.4",

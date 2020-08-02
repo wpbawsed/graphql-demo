@@ -1,20 +1,24 @@
-var express = require('express');
-var graphqlHTTP = require('express-graphql');
+const { ApolloServer, gql } = require('apollo-server-express')
+const express = require('express')
+
+const app = express()
 
 // const { schema } = require('./schema');
 // const { resolvers } = require('./resolvers');
 
-const { schema, rootValue } = require('./GraphQLSchema');
+const { typeDefs, resolvers } = require('./GraphQLSchema');
 
-var app = express();
+const server = new ApolloServer({
+    typeDefs,
+    resolvers
+});
 
-app.use('/graphql', graphqlHTTP({
-    // pretty: true,
-    schema,
-    rootValue: rootValue,
-    graphiql: true,
-}));
+// The GraphQL endpoint
+server.applyMiddleware({
+    path: '/',
+    app
+})
 
-app.listen(4000);
-
-console.log('Running a GraphQL API server at localhost:4000/graphql');
+app.listen({ port: 4000 }, () =>
+    console.log(`Server ready at http://localhost:4000${server.graphqlPath}`)
+)

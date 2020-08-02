@@ -1,6 +1,8 @@
-const tokenUtil = require('./token')
-const User = require('../models/user')
+const tokenUtil = require('../services/jwt')
+const User = require('../modules/users')
+
 const TOKEN_HEADER_NAME = 'x-token'
+
 const getUser = async req => {
     if (!req) {
         return null

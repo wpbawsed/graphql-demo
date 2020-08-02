@@ -1,4 +1,8 @@
 const { gql } = require('apollo-server-express')
+
+const { me } = require('./queries')
+const { login, signUp } = require('./mutations')
+
 // The schema (feel free to split these in a subfolder if you'd like)
 const typeDefs = gql`
   extend type Query {
@@ -30,11 +34,21 @@ const typeDefs = gql`
     lastName: String!
   }
 `
-const resolvers = require('./resolvers')
+
 module.exports = {
-    // typeDefs is an array, because it should be possible to split your schema if the schema grows to big, you can just export multiple here
-    typeDefs: [
-        typeDefs
-    ],
-    resolvers
+    auth: {
+        // typeDefs is an array, because it should be possible to split your schema if the schema grows to big, you can just export multiple here
+        typeDefs: [
+            typeDefs
+        ],
+        resolvers: {
+            Query: {
+                me
+            },
+            Mutation: {
+                login,
+                signUp
+            }
+        }
+    }
 }

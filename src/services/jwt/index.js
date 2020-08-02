@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken')
 
-const config = require('../config')
+const config = require('../../config')
 
 const create = userId => new Promise((resolve, reject) => {
     jwt.sign({

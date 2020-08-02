@@ -1,19 +1,23 @@
 const express = require('express')
 
 // The reason why apollo-server-express is because later on for testing we use Supertest, which requires an app object
-const graphqlHTTP = require('express-graphql');
+const { ApolloServer } = require('apollo-server-express')
 
-const { schema, rootValue } = require('./GraphQLSchema');
+// we don't have these yet, but don't worry we'll get there.
+const context = require('./utils/context')
+const schema = require('./modules')
+
+const server = new ApolloServer({
+    schema,
+    // context: async ({ req }) => ({
+    //     user: await context.getUser(req)
+    // })
+})
 
 const app = express()
 
-app.use('/graphql', graphqlHTTP({
-    // pretty: true,
-    schema,
-    rootValue: rootValue,
-    graphiql: true,
-}));
-
-console.log('Running a GraphQL API server at localhost:4000/graphql');
-
+server.applyMiddleware({
+    path: '/graphql',
+    app
+})
 module.exports = app

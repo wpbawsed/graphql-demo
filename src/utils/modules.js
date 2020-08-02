@@ -1,12 +1,13 @@
 const { gql, makeExecutableSchema } = require('apollo-server-express')
 const deepmerge = require('deepmerge')
+
 const directives = require('../directives')
 const scalars = require('../scalars')
 
-const globalTypeDefs = gql`
+const globalTypeDefs = gql(`
   type Query
   type Mutation
-`
+`)
 
 const makeExecutableSchemaFromModules = ({ modules }) => {
     let typeDefs = [

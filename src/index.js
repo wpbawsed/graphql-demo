@@ -3,12 +3,15 @@ const mongoose = require('mongoose')
 const url = require('url')
 const app = require('./app')
 const config = require('./config')
+
 const mongoHost = new url.URL(config.MONGODB_URI).host
+
 const startServer = async function () {
     const mongooseOptions = {
         useNewUrlParser: true,
         promiseLibrary: global.Promise
     }
+
     try {
         await Promise.all([
             mongoose.connect(config.MONGODB_URI, mongooseOptions),
@@ -21,6 +24,7 @@ const startServer = async function () {
         console.error(`Could not start the app: `, error)
     }
 }
+
 // Let's make Node.js clustered for beter multi-core performance
 throng({
     workers: config.WORKERS,
