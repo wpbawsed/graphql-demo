@@ -14,24 +14,19 @@ const typeDefs = gql`
       email: String!,
       password: String!
     ): AuthData
-    signup(
+    
+    signUp(
       email: String!,
       password: String!,
       firstName: String!,
       lastName: String!
     ): User
   }
+  
   type AuthData {
     user: User
     token: String!
     tokenExpiration: String!
-  }
-  type User {
-    id: ID!
-    email: String!
-    password: String!
-    firstName: String!
-    lastName: String!
   }
 `
 

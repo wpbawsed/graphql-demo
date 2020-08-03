@@ -1,125 +1,249 @@
 const { gql } = require('apollo-server-express')
 
 exports.typeDefs = gql(`
-  type User {
-    id: ID!
-    name: String!
-    posts: [Post!]!
-  }
+    """
+    高度單位
+    """
+    enum HeightUnit {
+        "公尺"
+        METRE
+        "公分"
+        CENTIMETRE
+        "英尺 (1 英尺 = 30.48 公分)"
+        FOOT
+    }
 
-  type Post {
-    id: ID!
-    author: User!
-    title: String!
-    body: String!
-  }
+    """
+    重量單位
+    """
+    enum WeightUnit {
+        "公斤"
+        KILOGRAM
+        "公克"
+        GRAM
+        "磅 (1 磅 = 0.45359237 公斤)"
+        POUND
+    }
 
-  type Query {
-    hello: String
-    users: [User!]!
-    posts: [Post!]!
-    user(id: ID!): User
-  }
+    type User {
+        id: ID!
+        name: String!
+        
+        "身高 (預設為 CENTIMETRE)"
+        height(unit: HeightUnit = CENTIMETRE): Float
+        
+        "體重 (預設為 KILOGRAM)"
+        weight(unit: WeightUnit = KILOGRAM): Float
+    }
+
+    type Post {
+        id: ID!
+        author: User!
+        title: String!
+        content: String!
+        likeGiverIds: String!
+    }
+
+    type Query {
+        hello: String
+        
+        users: [User!]!
+        posts: [Post!]!
+        
+        user(id: ID!): User
+        
+        "取得特定 user (name 為必填)"
+        userByName(name: String!): User
+    }
   
-  type RemoveUserPayload {
-    deletedUserId: Int!
-  }
+    type RemoveUserPayload {
+        deletedUserId: Int!
+    }
 
-  type Mutation {
-    addUser(name: String!): User
-    renameUser(id: Int!, name: String!): User
-    removeUser(id: Int!): RemoveUserPayload
-  }
+    type Mutation {
+        addUser(name: String!): User
+        renameUser(id: Int!, name: String!): User
+        removeUser(id: Int!): RemoveUserPayload
+    }
 `);
 
-let nextId = 2
-
-const usersById = {
-    1: {
-        id: 1,
-        name: 'chentsuli123n',
+// ---- Data
+let userList = [
+    {
+        id: "1",
+        name: 'aaaaa',
+        height: 190,
+        weight: 95
     },
-};
-
-const postsById = {
-    18: {
-        id: 18,
-        authorId: 1,
-        title: 'Day 18：GraphQL 入門 Part I - 從 REST 到 GraphQL',
-        body: 'Facebook 在 2012 年開始在公司內部使用 GraphQL，而在 2015 年 7 月開源...',
+    {
+        id: "2",
+        name: 'bbbbb',
+        height: 180,
+        weight: 100
     },
-    19: {
-        id: 19,
-        authorId: 1,
-        title: 'Day 19：GraphQL 入門 Part II - 實作 Schema & Type',
-        body: '前一篇講了 REST 的一些缺點，還有 GraphQL 如何解決這些問題...',
+    {
+        id: "3",
+        name: 'ccccc',
+        height: 178,
+        weight: 79
     },
-};
+    {
+        id: "4",
+        name: 'ddddd',
+        height: 165,
+        weight: 65
+    },
+]
 
+let postList = [
+    { id: "1", authorId: "1", title: "Hello World!", content: "This is my first post.", likeGiverIds: ["2"] },
+    { id: "2", authorId: "2", title: "Good Night", content: "Have a Nice Dream =)", likeGiverIds: ["2", "3"] },
+    { id: "3", authorId: "1", title: "I Love U", content: "Here's my second post!", likeGiverIds: [] },
+]
+
+// ---- GraphQL Schema
 const queries = {
     hello: () => 'Hello world!',
-    users: () => Object.keys(usersById).map(
-        id => new GraphQLUser(usersById[id])
-    ),
-    user: ({ id }) => usersById[id] ? new GraphQLUser(usersById[id]) : null,
-    posts: () => Object.keys(postsById).map(
-        id => new GraphQLPost(postsById[id])
-    ),
+
+    users: () => {
+        let model = new GraphQLUser()
+
+        return model.getUsers()
+    },
+
+    // 對應到 Schema 的 Query.user
+    user: (root, args, context) => {
+        console.log(root, args, context)
+
+        const { id } = args;
+
+        let model = new GraphQLUser()
+
+        return model.getUser(id)
+    },
+
+    posts: () => {
+        let model = new GraphQLPost()
+
+        return model.getUsers()
+    },
 };
 
 const mutations = {
-    addUser: ({ name }) => {
-        const newUser = {
-            id: nextId,
-            name,
-        };
-        usersById[nextId] = newUser;
+    addUser: ({ id, name, height, weight }) => {
+        const newUser = { id, name, height, weight }
 
-        nextId++;
+        let model = new GraphQLUser()
 
-        return new GraphQLUser(newUser);
+        return model.createUser(newUser)
     },
-    renameUser: ({ id, name }) => {
-        usersById[id].name = name;
+    renameUser: ({ id, name, height, weight }) => {
+        const editUser = { id, name, height, weight }
 
-        return new GraphQLUser(usersById[id]);
+        let model = new GraphQLUser()
+
+        return model.updateUser(id, editUser)
     },
+
     removeUser: ({ id }) => {
-        delete usersById[id];
+        let model = new GraphQLUser()
 
-        return {
-            deletedUserId: id,
-        };
+        return model.deleteUser(id)
     },
 }
 
+const userResolver = {
+    // 對應到 Schema 的 User.height
+    height: (parent, args) => {
+        console.log(parent, args)
+        const { unit } = args;
+        // 可注意到 Enum type 進到 javascript 就變成了 String 格式
+        // 另外支援 default 值 CENTIMETRE
+        if (!unit || unit === "CENTIMETRE") return parent.height;
+        else if (unit === "METRE") return parent.height / 100;
+        else if (unit === "FOOT") return parent.height / 30.48;
+        throw new Error(`Height unit "${unit}" not supported.`);
+    },
+    // 對應到 Schema 的 User.weight
+    weight: (parent, args, context) => {
+        const { unit } = args;
+        // 支援 default 值 KILOGRAM
+        if (!unit || unit === "KILOGRAM") return parent.weight;
+        else if (unit === "GRAM") return parent.weight * 100;
+        else if (unit === "POUND") return parent.weight / 0.45359237;
+        throw new Error(`Weight unit "${unit}" not supported.`);
+    }
+}
+
+
+const postResolver = {
+    // 2-1. parent 為 post 的資料，透過 post.likeGiverIds 連接到 users
+    likeGivers: (parent, args, context) => {
+        return parent.likeGiverIds.map(id => {
+            let userModel = new GraphQLUser()
+            return userModel.getUser(id)
+        });
+    },
+    // 2-2. parent 為 post 的資料，透過 post.author
+    author: (parent, args, context) => {
+        let userModel = new GraphQLUser()
+        return userModel.getUser(parent.authorId)
+    }
+}
+
+// ----- model
 class GraphQLUser {
-    constructor({ id, name }) {
-        this.id = id;
-        this.name = name;
+    createUser(user) {
+        return userList.push(user)
     }
 
-    posts() {
-        return Object.keys(postsById)
-            .map(id => new GraphQLPost(postsById[id]))
-            .filter(post => post.authorId === this.id);
+    updateUser(id, data) {
+        let updateIndex = userList.findIndex(user => user.id === id)
+        userList[updateIndex] = data
+        return userList
+    }
+
+    getUser(id) {
+        return userList.find(user => user.id === id)
+    }
+
+    getUsers() {
+        return userList
+    }
+
+    deleteUser(id) {
+        let deleteIndex = userList.findIndex(user => user.id === id)
+        return userList.splice(deleteIndex, 1)
     }
 }
 
 class GraphQLPost {
-    constructor({ id, authorId, title, body }) {
-        this.id = id;
-        this.authorId = authorId;
-        this.title = title;
-        this.body = body;
+    createPost(post) {
+        return postList.push(post)
     }
 
-    author() {
-        return new GraphQLUser(usersById[this.authorId]);
+    updatePost(id, data) {
+        let updateIndex = postList.findIndex(post => post.id === id)
+        postList[updateIndex] = data
+        return postList
+    }
+
+    getPost(id) {
+        return postList.find(post => post.id === id)
+    }
+
+    getPosts() {
+        return postList
+    }
+
+    deletePost(id) {
+        let deleteIndex = postList.findIndex(post => post.id === id)
+        return postList.splice(deleteIndex, 1)
     }
 }
 
 exports.resolvers = {
     Query: queries,
+    User: userResolver,
     Mutation: mutations,
 };

@@ -9,9 +9,9 @@ const schema = require('./modules')
 
 const server = new ApolloServer({
     schema,
-    // context: async ({ req }) => ({
-    //     user: await context.getUser(req)
-    // })
+    context: async ({ req }) => ({
+        user: await context.getUser(req)
+    })
 })
 
 const app = express()

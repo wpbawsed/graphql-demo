@@ -3,9 +3,6 @@ const express = require('express')
 
 const app = express()
 
-// const { schema } = require('./schema');
-// const { resolvers } = require('./resolvers');
-
 const { typeDefs, resolvers } = require('./GraphQLSchema');
 
 const server = new ApolloServer({

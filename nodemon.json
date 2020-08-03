@@ -9,6 +9,7 @@
   "watch": [
     "src",
     "server.js",
+    "GraphQLSchema.js",
     ".env"
   ]
 }
