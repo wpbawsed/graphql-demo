@@ -41,7 +41,7 @@ exports.typeDefs = gql(`
         author: User!
         title: String!
         content: String!
-        likeGiverIds: String!
+        likeGivers: [User]
     }
 
     type Query {
@@ -59,11 +59,22 @@ exports.typeDefs = gql(`
     type RemoveUserPayload {
         deletedUserId: Int!
     }
-
+    
+    input AddPostInput {
+      title: String!
+      content: String
+    }
+    
     type Mutation {
         addUser(name: String!): User
         renameUser(id: Int!, name: String!): User
         removeUser(id: Int!): RemoveUserPayload
+        
+        "新增貼文"
+        addPost(input: AddPostInput!): Post
+        
+        "貼文按讚 (收回讚)"
+        likePost(postId: ID!): Post
     }
 `);
 
@@ -96,9 +107,9 @@ let userList = [
 ]
 
 let postList = [
-    { id: "1", authorId: "1", title: "Hello World!", content: "This is my first post.", likeGiverIds: ["2"] },
-    { id: "2", authorId: "2", title: "Good Night", content: "Have a Nice Dream =)", likeGiverIds: ["2", "3"] },
-    { id: "3", authorId: "1", title: "I Love U", content: "Here's my second post!", likeGiverIds: [] },
+    { id: "1", authorId: "1", title: "Hello World!", content: "This is my first post.", likeGivers: ["2"] },
+    { id: "2", authorId: "2", title: "Good Night", content: "Have a Nice Dream =)", likeGivers: ["2", "3"] },
+    { id: "3", authorId: "1", title: "I Love U", content: "Here's my second post!", likeGivers: [] },
 ]
 
 // ---- GraphQL Schema
@@ -150,6 +161,50 @@ const mutations = {
 
         return model.deleteUser(id)
     },
+
+    addPost: (root, args, context) => {
+        // const { title, content } = args;
+
+        const { input } = args;
+        const { title, content } = input;
+
+        let userId = "1"
+
+        let model = new GraphQLPost()
+
+        let data = {
+            id: model.getPosts().length + 1,
+            authorId: userId,
+            title,
+            content,
+            likeGivers: []
+        }
+
+        let posts = model.createPost(data)
+
+        return data;
+    },
+    likePost: (root, args, context) => {
+        const { postId } = args;
+
+        let userId = "1"
+
+        let model = new GraphQLPost()
+
+        const post = model.getPost(postId)
+
+        if (!post) throw new Error(`Post ${postId} Not Exists`);
+
+        if (post.likeGivers.includes(userId)) {
+            // 如果已經按過讚就收回
+            const index = post.likeGiverIds.findIndex(v => v === userId);
+            post.likeGivers.splice(index, 1);
+        } else {
+            // 否則就加入 likeGiverIds 名單
+            post.likeGiverIds.push(userId);
+        }
+        return post;
+    },
 }
 
 const userResolver = {
@@ -174,7 +229,6 @@ const userResolver = {
         throw new Error(`Weight unit "${unit}" not supported.`);
     }
 }
-
 
 const postResolver = {
     // 2-1. parent 為 post 的資料，透過 post.likeGiverIds 連接到 users
@@ -245,5 +299,6 @@ class GraphQLPost {
 exports.resolvers = {
     Query: queries,
     User: userResolver,
+    Post: postResolver,
     Mutation: mutations,
 };
