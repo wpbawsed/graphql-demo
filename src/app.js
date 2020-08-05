@@ -20,4 +20,5 @@ server.applyMiddleware({
     path: '/graphql',
     app
 })
+
 module.exports = app
